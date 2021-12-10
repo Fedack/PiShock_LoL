@@ -13,7 +13,7 @@ export default function () {
     piShockCreds: {
       key: "",
       username: "",
-      shockers: "",
+      shockers: [],
       clientId: "",
     },
   };

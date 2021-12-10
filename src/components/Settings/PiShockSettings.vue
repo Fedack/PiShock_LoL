@@ -10,11 +10,22 @@
     <q-dialog v-model="dialog">
       <q-card class="bg-dark">
         <q-card-section>
-          <q-input dark label="PiShock Username" v-model="username" /><q-input
-            label="PiShock Api Key"
-            v-model="key"
+          <q-input
             dark
-          /><q-input dark label="PiShock ID" v-model="id" /><q-btn
+            v-on:keyup.stop="updateField('username', $event.target.value)"
+            label="PiShock Username"
+            :model-value="creds.username"
+          /><q-input
+            label="PiShock Api Key"
+            :model-value="creds.key"
+            v-on:keyup.stop="updateField('key', $event.target.value)"
+            dark
+          /><q-input
+            dark
+            v-on:keyup.stop="updateField('clientId', $event.target.value)"
+            label="PiShock ID"
+            :model-value="creds.clientId"
+          /><q-btn
             label="Test / Get Shockers"
             class="full-width"
             color="primary"
@@ -45,35 +56,11 @@ import { api } from "boot/axios";
 export default defineComponent({
   setup() {
     const $store = useStore();
-    const username = computed({
-      get: () => $store.state.data.piShockCreds.username,
-      set: (val) => {
-        $store.commit("data/updatePiShockUsername", val);
-      },
-    });
-    const key = computed({
-      get: () => $store.state.data.piShockCreds.key,
-      set: (val) => {
-        $store.commit("data/updatePiShockApiKey", val);
-      },
-    });
-    const id = computed({
-      get: () => $store.state.data.piShockCreds.clientId,
-      set: (val) => {
-        $store.commit("data/updatePiShockClientId", val);
-      },
-    });
-    const shockers = computed({
-      get: () => $store.state.data.piShockCreds.shockers,
-      set: (val) => {
-        $store.commit("data/updateShockers", val);
-      },
+    const creds = computed({
+      get: () => $store.state.data.piShockCreds,
     });
     return {
-      username,
-      key,
-      id,
-      shockers,
+      creds,
     };
   },
   data() {
@@ -83,14 +70,19 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.shockersRaw = JSON.parse(JSON.stringify(this.shockers));
+    this.shockersRaw = JSON.parse(JSON.stringify(this.creds.shockers));
   },
   methods: {
+    updateField(field, value) {
+      this.$store.commit("data/updatepiShockCreds", {
+        [field]: value,
+      });
+    },
     TestAPI() {
       api
         .post("https://do.pishock.com/api/VerifyApiCredentials", {
-          ApiKey: this.key,
-          Username: this.username,
+          ApiKey: this.creds.key,
+          Username: this.creds.username,
         })
         .then((res) => {
           console.log("Confirmed");
@@ -105,16 +97,16 @@ export default defineComponent({
         "data/updateShockers",
         JSON.parse(JSON.stringify(this.shockersRaw))
       );
-      console.log(this.shockers);
+      console.log(this.creds.shockers);
     },
     GetShockers() {
       if (this.id !== "") {
         console.log("fetching shockers");
         api
           .post("https://do.pishock.com/api/GetShockers", {
-            ApiKey: this.key,
-            Username: this.username,
-            ClientId: this.id,
+            ApiKey: this.creds.key,
+            Username: this.creds.username,
+            ClientId: this.creds.clientId,
           })
           .then((res) => {
             console.log(res.data);

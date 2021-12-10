@@ -101,37 +101,37 @@ export default defineComponent({
     const amountDeath = computed({
       get: () => $store.state.data.settings.increaseDeathAmount,
       set: (val) => {
-        $store.commit("data/updateSettingsAmountDeath", val);
+        $store.commit("data/updateSettingsAmountDeath", parseInt(val));
       },
     });
     const amountKill = computed({
       get: () => $store.state.data.settings.increaseKillAmount,
       set: (val) => {
-        $store.commit("data/updateSettingsAmountKill", val);
+        $store.commit("data/updateSettingsAmountKill", parseInt(val));
       },
     });
     const durationKill = computed({
       get: () => $store.state.data.settings.increaseKillDuration,
       set: (val) => {
-        $store.commit("data/updateSettingsKillDuration", val);
+        $store.commit("data/updateSettingsKillDuration", parseInt(val));
       },
     });
     const durationDeath = computed({
       get: () => $store.state.data.settings.increaseDeathDuration,
       set: (val) => {
-        $store.commit("data/updateSettingsDeathDuration", val);
+        $store.commit("data/updateSettingsDeathDuration", parseInt(val));
       },
     });
     const defaultIntensity = computed({
       get: () => $store.state.data.settings.defaultIntensity,
       set: (val) => {
-        $store.commit("data/updateSettingsDefaultIntensity", val);
+        $store.commit("data/updateSettingsDefaultIntensity", parseInt(val));
       },
     });
     const defaultDuration = computed({
       get: () => $store.state.data.settings.defaultDuration,
       set: (val) => {
-        $store.commit("data/updateSettingsDefaultDuration", val);
+        $store.commit("data/updateSettingsDefaultDuration", parseInt(val));
       },
     });
 
@@ -149,9 +149,9 @@ export default defineComponent({
   },
   computed: {
     intensityOnDeath() {
-      let total = this.defaultIntensity;
+      let total = parseInt(this.defaultIntensity);
       if (this.onDeath) {
-        let currentDeathInt = this.score.deaths * this.amountDeath;
+        let currentDeathInt = this.score.deaths * parseInt(this.amountDeath);
         total += currentDeathInt;
       }
       if (total > 100) {
@@ -160,10 +160,10 @@ export default defineComponent({
       return total;
     },
     intensityOnKill() {
-      let total = this.defaultIntensity;
+      let total = parseInt(this.defaultIntensity);
       if (this.onKill) {
         let currentDeathInt =
-          (this.score.kills + this.score.assists) * this.amountKill;
+          (this.score.kills + this.score.assists) * parseInt(this.amountKill);
         total += currentDeathInt;
       }
       if (total > 100) {
@@ -172,9 +172,10 @@ export default defineComponent({
       return total;
     },
     durationOnDeath() {
-      let total = this.defaultDuration;
+      let total = parseInt(this.defaultDuration);
       if (this.onDeath) {
-        let currentDeathDuration = this.score.deaths * this.durationDeath;
+        let currentDeathDuration =
+          this.score.deaths * parseInt(this.durationDeath);
         total += currentDeathDuration;
       }
       if (total > 15) {
@@ -183,10 +184,10 @@ export default defineComponent({
       return total;
     },
     durationOnKill() {
-      let total = this.defaultDuration;
+      let total = parseInt(this.defaultDuration);
       if (this.onKill) {
         let currentKillDuration =
-          (this.score.kills + this.score.assists) * this.durationKill;
+          (this.score.kills + this.score.assists) * parseInt(this.durationKill);
         total += currentKillDuration;
       }
       if (total > 15) {
@@ -226,9 +227,64 @@ export default defineComponent({
       return setInterval(() => {
         api.get("playerscores?summonerName=" + this.playerName).then((res) => {
           console.log(res);
-          this.score = res.data;
+          this.processScore(res.data);
         });
       }, 500);
+    },
+    processScore(newScore) {
+      if (newScore.deaths > this.score.deaths) {
+        this.score = newScore;
+        if (this.creds.shockers.length > 0) {
+          let code = this.getRandomShockerCode();
+          this.SendPiShockRequest(
+            code,
+            this.intensityOnDeath,
+            this.durationOnDeath,
+            this.creds.username,
+            0
+          );
+        }
+      }
+      if (
+        newScore.assists > this.score.assists ||
+        newScore.kills > this.score.kills
+      ) {
+        this.score = newScore;
+        if (this.creds.shockers.length > 0) {
+          let code = this.getRandomShockerCode();
+          this.SendPiShockRequest(
+            code,
+            this.intensityOnKill,
+            this.durationOnKill,
+            this.creds.username,
+            0
+          );
+        }
+      }
+    },
+    getRandomShockerCode() {
+      let selectShockerIndex = Math.floor(
+        Math.random() * this.creds.shockers.length
+      );
+      console.log(selectShockerIndex);
+      let randomElement = this.creds.shockers[selectShockerIndex];
+      console.log(randomElement);
+      return randomElement.code;
+    },
+    SendPiShockRequest(shockerCode, intensity, duration, username, method) {
+      api
+        .post("https://do.pishock.com/api/apioperate", {
+          ApiKey: this.creds.key,
+          Username: this.creds.username,
+          Code: shockerCode,
+          Duration: duration,
+          Intensity: intensity,
+          Name: username,
+          Method: method,
+        })
+        .then((res) => {
+          console.log(res.data);
+        });
     },
   },
 });

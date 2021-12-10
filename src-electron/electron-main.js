@@ -1,7 +1,9 @@
 import { app, BrowserWindow, nativeTheme } from "electron";
+import { initialize, enable } from "@electron/remote/main";
 import path from "path";
 import os from "os";
 
+initialize();
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
 
@@ -21,8 +23,11 @@ function createWindow() {
    */
   mainWindow = new BrowserWindow({
     icon: path.resolve(__dirname, "icons/icon.png"), // tray icon
-    width: 1000,
-    height: 600,
+    width: 600,
+    height: 800,
+    minHeight: 800,
+    minWidth: 600,
+    frame: false,
     useContentSize: true,
     webPreferences: {
       contextIsolation: true,
@@ -32,7 +37,7 @@ function createWindow() {
     },
     allowRunningInsecureContent: true,
   });
-
+  enable(mainWindow.webContents);
   mainWindow.loadURL(process.env.APP_URL);
 
   if (process.env.DEBUGGING) {

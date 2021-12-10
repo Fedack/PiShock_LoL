@@ -17,7 +17,11 @@ export function updatePiShockApiKey(state, val) {
 }
 
 export function updateSettings(state, val) {
-  state.settings = val;
+  Object.assign(state.settings, val);
+}
+
+export function updatepiShockCreds(state, piShockCreds) {
+  Object.assign(state.piShockCreds, piShockCreds);
 }
 
 export function updateSettingsOnDeath(state, val) {
@@ -27,10 +31,12 @@ export function updateSettingsOnKill(state, val) {
   state.settings.increaseOnKill = val;
 }
 export function updateSettingsAmountDeath(state, val) {
-  state.settings.increaseAmountDeath = val;
+  console.log(val);
+  state.settings.increaseDeathAmount = val;
 }
 export function updateSettingsAmountKill(state, val) {
-  state.settings.increaseAmountKill = val;
+  console.log(val);
+  state.settings.increaseKillAmount = val;
 }
 export function updateSettingsDefaultIntensity(state, val) {
   state.settings.defaultIntensity = val;
@@ -39,10 +45,10 @@ export function updateSettingsDefaultDuration(state, val) {
   state.settings.defaultDuration = val;
 }
 export function updateSettingsDeathDuration(state, val) {
-  state.settings.increaseDurationDeath = val;
+  state.settings.increaseDeathDuration = val;
 }
 export function updateSettingsKillDuration(state, val) {
-  state.settings.increaseDurationKill = val;
+  state.settings.increaseKillDuration = val;
 }
 
 export function updatePiShockClientId(state, val) {
